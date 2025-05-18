@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -145,7 +144,6 @@
 
     let saldo = 0;
 
-    // Leer saldo y gastos al cargar
     window.onload = function() {
       db.ref("saldo").on("value", snapshot => {
         saldo = snapshot.val() || 0;
@@ -157,21 +155,22 @@
         const lista = document.getElementById("listaGastos");
         lista.innerHTML = "";
         const gastos = snapshot.val();
-        for (let id in gastos) {
-          const { descripcion, cantidad, fecha } = gastos[id];
-          const li = document.createElement("li");
-          const texto = document.createElement("span");
-          texto.textContent = `${descripcion} - $${cantidad.toFixed(2)} (registrado el ${fecha})`;
-          const botonBorrar = document.createElement("button");
-          botonBorrar.textContent = "Borrar";
-          botonBorrar.className = "borrar";
-          botonBorrar.onclick = function() {
-            db.ref(`gastos/${id}`).remove();
-            db.ref("saldo").set(saldo + cantidad);
-          };
-          li.appendChild(texto);
-          li.appendChild(botonBorrar);
-          lista.appendChild(li);
+        if (gastos) {
+          Object.entries(gastos).forEach(([id, { descripcion, cantidad, fecha }]) => {
+            const li = document.createElement("li");
+            const texto = document.createElement("span");
+            texto.textContent = `${descripcion} - $${parseFloat(cantidad).toFixed(2)} (registrado el ${fecha})`;
+            const botonBorrar = document.createElement("button");
+            botonBorrar.textContent = "Borrar";
+            botonBorrar.className = "borrar";
+            botonBorrar.onclick = function() {
+              db.ref(`gastos/${id}`).remove();
+              db.ref("saldo").set(saldo + parseFloat(cantidad));
+            };
+            li.appendChild(texto);
+            li.appendChild(botonBorrar);
+            lista.appendChild(li);
+          });
         }
       });
     }
@@ -194,7 +193,7 @@
     }
 
     function agregarGasto() {
-      const descripcion = document.getElementById('descripcionGasto').value;
+      const descripcion = document.getElementById('descripcionGasto').value.trim();
       const cantidad = parseFloat(document.getElementById('cantidadGasto').value);
       const fecha = new Date().toLocaleDateString('es-ES');
 
